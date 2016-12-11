@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "ucac4.h"
 
 /* Basic access functions for UCAC-4.  Public domain.  Please contact
@@ -242,7 +243,7 @@ void flip_ucac4_star( UCAC4_STAR *star)
 
 int32_t get_actual_proper_motion( const UCAC4_STAR *star, const int get_dec_pm)
 {
-   int32_t rval;
+   int32_t rval = 0;
 
    if( star->pm_ra != 32767 && star->pm_dec != 32767)
       rval = (get_dec_pm ? star->pm_dec : star->pm_ra);
@@ -279,6 +280,7 @@ int32_t get_actual_proper_motion( const UCAC4_STAR *star, const int get_dec_pm)
       for( i = 0; pm_lookup_table[i]; i += 3)
          if( pm_lookup_table[i] == (int32_t)star->id_number)
             rval = pm_lookup_table[i + (get_dec_pm ? 2 : 1)];
+      assert( rval);
       }
    return( rval);
 }
@@ -595,6 +597,14 @@ they're in the desired RA/dec rectangle,  written out to 'ofile'. */
 
 clock_t time_searching = 0;
 
+#define UCAC4_FGETS_FAILED         -1
+#define UCAC4_FREAD_FAILED				     -2
+#define UCAC4_FSEEK_FAILED         -3
+#define UCAC4_FSEEK2_FAILED        -4
+#define UCAC4_FSEEK3_FAILED        -5
+#define UCAC4_SSCANF_FAILED        -6
+#define UCAC4_ALLOC_FAILED         -7
+
 int extract_ucac4_stars( FILE *ofile, const double ra, const double dec,
                   const double width, const double height, const char *path,
                   const int output_format)
@@ -612,7 +622,7 @@ int extract_ucac4_stars( FILE *ofile, const double ra, const double dec,
    UCAC4_STAR *stars = (UCAC4_STAR *)calloc( buffsize, sizeof( UCAC4_STAR));
 
    if( !stars)
-      rval = -1;
+      rval = UCAC4_ALLOC_FAILED;
    if( zone < 1)
       zone = 1;
    if( ra_start < 0)
@@ -651,10 +661,11 @@ int extract_ucac4_stars( FILE *ofile, const double ra, const double dec,
                unsigned long ul_offset, ul_end_offset;
 
                if( fseek( index_file, index_file_offset, SEEK_SET))
-                  rval = -2;
-               fgets( ibuff, sizeof( ibuff), index_file);
+                  rval = UCAC4_FSEEK_FAILED;
+               if( !fgets( ibuff, sizeof( ibuff), index_file))
+                  rval = UCAC4_FGETS_FAILED;
                if( sscanf( ibuff, "%lu%lu", &ul_offset, &ul_end_offset) != 2)
-                  rval = -3;
+                  rval = UCAC4_SSCANF_FAILED;
                offset = (uint32_t)ul_offset;
                end_offset = (uint32_t)ul_end_offset;
                end_offset += offset;
@@ -666,7 +677,7 @@ int extract_ucac4_stars( FILE *ofile, const double ra, const double dec,
                {
                offset = 0;
                if( fseek( ifile, 0L, SEEK_END))
-                  rval = -4;
+                  rval = UCAC4_FSEEK2_FAILED;
                end_offset = ftell( ifile) / sizeof( UCAC4_STAR);
 //             end_offset = ucac4_offsets[zone] - ucac4_offsets[zone - 1];
                ra_lo = 0;
@@ -690,9 +701,9 @@ int extract_ucac4_stars( FILE *ofile, const double ra, const double dec,
                tval = delta - minimum_bite;
             toffset = offset + (uint32_t)tval;
             if( fseek( ifile, toffset * sizeof( UCAC4_STAR), SEEK_SET))
-               rval = -5;
+               rval = UCAC4_FSEEK3_FAILED;
             if( fread( &star, sizeof( UCAC4_STAR), 1, ifile) != 1)
-               rval = -6;
+               rval = UCAC4_FREAD_FAILED;
             if( star.ra < min_ra)
                {
                offset = toffset;
