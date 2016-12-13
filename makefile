@@ -33,7 +33,10 @@ ifdef XCOMPILE
    LIBSADDED=
 endif
 
-all:  cmcrange$(EXE) cmc_xvt$(EXE) extr_cmc$(EXE) g32test$(EXE) u4test$(EXE)
+all:  cmcrange$(EXE) cmc_xvt$(EXE) extr_cmc$(EXE) g32test$(EXE) u2test$(EXE) u4test$(EXE)
+
+u2test$(EXE): u2test.o ucac2.o
+	$(CC) -o u2test$(EXE) u2test.o ucac2.o
 
 u4test$(EXE): u4test.o ucac4.o
 	$(CC) -o u4test$(EXE) u4test.o ucac4.o
@@ -58,5 +61,6 @@ clean:
 	-rm cmc_xvt$(EXE)
 	-rm extr_cmc$(EXE)
 	-rm g32test$(EXE)
+	-rm u2test$(EXE)
 	-rm u4test$(EXE)
 	-rm *.o
