@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdlib.h>
+#include <stdint.h>
 #include "ucac2.h"
 
 /* The following code shows how the UCAC2 code can be used,  and
