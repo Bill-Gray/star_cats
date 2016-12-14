@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <math.h>       /* for fabs( ) proto */
 #include <string.h>
 #include <stdlib.h>
 #include "gaia32.h"
@@ -63,7 +62,7 @@ int write_gaia32_star( const int zone, const long offset, char *obuff,
    if( output_format & GAIA32_BASE_60)
       {
       const int64_t ra = (int64_t)( star->ra * 100. / 15. + .5);
-      const long dec = (long)( fabs( star->dec) + .5);
+      const long dec = (long)abs( star->dec);
 
       sprintf( obuff + 11, "%02d %02d %02d.%05d %c%02ld %02ld %02ld.%03ld",
                (int)( ra / (int64_t)360000000),
