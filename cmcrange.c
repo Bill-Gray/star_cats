@@ -46,7 +46,7 @@ static const char *filenames[] = {
         "cmc15s6.cmc", "cmc15s6r.cmc",
         "cmc15s7.cmc", "cmc15s7r.cmc", NULL };
 
-int main( const int unused_argc, const char **unused_argv)
+int main( void)
 {
    CMC1x_REC max, min, irec;
    char tbuff[CMC1x_BINARY_RECORD_SIZE];
