@@ -26,7 +26,7 @@ GAIA32_STAR
    };
 #pragma pack( )
 
-/* Note: sizeof( GAIA32_STAR) = 78 bytes */
+/* Note: sizeof( GAIA32_STAR) = 28 bytes */
 
 #ifdef __cplusplus
 extern "C" {
