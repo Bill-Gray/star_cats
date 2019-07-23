@@ -58,13 +58,13 @@ int write_gaia32_star( const int zone, const long offset, char *obuff,
 {
    const long epoch  = 2000000 + star->epoch;
 
-   sprintf( obuff, "%03d-%06ld ", zone, offset);
+   sprintf( obuff, "%03d-%08ld ", zone, offset);
    if( output_format & GAIA32_BASE_60)
       {
       const int64_t ra = (int64_t)( star->ra * 100. / 15. + .5);
       const long dec = (long)abs( star->dec);
 
-      sprintf( obuff + 11, "%02d %02d %02d.%05d %c%02ld %02ld %02ld.%03ld",
+      sprintf( obuff + 13, "%02d %02d %02d.%05d %c%02ld %02ld %02ld.%03ld",
                (int)( ra / (int64_t)360000000),
                (int)( ra / (int64_t)  6000000) % 60,
                (int)( ra / (int64_t)   100000) % 60,
@@ -74,7 +74,7 @@ int write_gaia32_star( const int zone, const long offset, char *obuff,
                (dec / 1000L) % 60L, dec % 1000L);
       }
   else         /* output RA/decs in decimal degrees */
-      sprintf( obuff + 11, "%12.8lf %12.8lf",
+      sprintf( obuff + 13, "%12.8lf %+12.8lf",
                (double)star->ra / 3600000., (double)star->dec / 3600000.);
 
    sprintf( obuff + strlen( obuff), " %2d.%03d %3d %4d.%03d %3d %3d ",
