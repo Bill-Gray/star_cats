@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 #include "gaia32.h"
@@ -19,13 +20,44 @@ static void show_error_message( void)
    printf( "'g32test.exe' takes as command-line arguments the RA/dec of the\n");
    printf( "center of the region to be extracted;  its width and height;\n");
    printf( "and,  optionally,  the path to the Gaia32 data.  All angles\n");
-   printf( "are in decimal degrees.  For example:\n\n");
-   printf( "g32test 50 -16.3 2 1.5 d:\\g32\n\n");
+   printf( "are in decimal degrees,  though six digits and a decimal will\n");
+   printf( "be considered HHMMSS or ddmmss values.  For examples,  either of:\n\n");
+   printf( "g32test 50 -16.3 2 1.5 d:\\g32\n");
+   printf( "g32test 032000.0 -161800.00 2 1.5 d:\\g32\n\n");
    printf( "would extract a 2-degree wide,  1.5-degree high area centered\n");
    printf( "on RA=50 degrees=3h20m, dec=-16.3,  with the data drawn from\n");
    printf( "the path d:\\g32.  Data will be written to the file 'gaia32.txt'.\n");
    printf( "\nOptionally, one may add command line options -h to include a header\n");
    printf( "line,  and/or -f4 to get the same output as from the FORTRAN code.\n");
+}
+
+static double extract_ra_dec( const char *str, const bool is_ra)
+{
+   double rval;
+   bool is_negative = false;
+
+   if( *str == '-')
+      {
+      is_negative = true;
+      str++;
+      }
+   else if( *str == '+')
+      str++;
+   if( strlen( str) > 5 && str[6] == '.')
+      {
+      const long seconds = atol( str);
+
+      rval = (double)( seconds / 10000L)
+                  + (double)( (seconds / 100L) % 100L) / 60.
+                  + atof( str + 4) / 3600.;
+      if( is_ra)           /* cvt hours to degrees */
+         rval *= 15.;
+      }
+   else
+      rval = atof( str);
+   if( is_negative)
+      rval = -rval;
+   return( rval);
 }
 
 static const char *usual_header = "  32G          RA     %s        dec"
@@ -76,7 +108,9 @@ int main( int argc, const char **argv)
       if( show_header)
          fprintf( ofile, usual_header,
                    (format & GAIA32_BASE_60) ? "   " : "");
-      rval = extract_gaia32_stars( ofile, atof( argv[1]), atof( argv[2]),
+      rval = extract_gaia32_stars( ofile,
+                               extract_ra_dec( argv[1], true),
+                               extract_ra_dec( argv[2], false),
                                atof( argv[3]), atof( argv[4]),
                                (argc == 5 ? "" : argv[5]), format);
 
