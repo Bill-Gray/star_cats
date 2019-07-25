@@ -60,7 +60,7 @@ static double extract_ra_dec( const char *str, const bool is_ra)
    return( rval);
 }
 
-static const char *usual_header = "  32G          RA     %s        dec"
+static const char *usual_header = " Gaia-DR2        RA     %s        dec"
             "     Gmag sGmag  epoch  dRA dde     pmRA    pmDec    pmSigmas\n";
 
 int main( int argc, const char **argv)
