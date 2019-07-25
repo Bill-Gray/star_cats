@@ -74,7 +74,7 @@ int write_gaia32_star( const int zone, const long offset, char *obuff,
                (dec / 1000L) % 60L, dec % 1000L);
       }
   else         /* output RA/decs in decimal degrees */
-      sprintf( obuff + 13, "%12.8lf %+12.8lf",
+      sprintf( obuff + 13, "%12.8lf %+012.8lf",
                (double)star->ra / 3600000., (double)star->dec / 3600000.);
 
    sprintf( obuff + strlen( obuff), " %2d.%03d %3d %4d.%03d %3d %3d ",
