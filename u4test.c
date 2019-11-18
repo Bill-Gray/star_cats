@@ -100,14 +100,14 @@ int main( int argc, const char **argv)
       show_error_message( );
    else
       {
-      FILE *ofile = fopen( "ucac4.txt", "wb");
+	   FILE* ofile = fopen(argc == 6 ? "ucac4.txt" : argv[6], "wb");
 
-      if( !ofile)
-         {
-         printf( "Couldn't open ucac4.txt\n");
-         show_error_message( );
-         return( -1);
-         }
+	   if (!ofile)
+	   {
+		   printf("Couldn't open %s\n", argc == 6 ? "ucac4.txt" : argv[6]);
+		   show_error_message();
+		   return(-1);
+	   }
       if( show_header)
          fprintf( ofile, "%s\n", (format & UCAC4_FORTRAN_STYLE) ?
                            fortran_header : usual_header);
