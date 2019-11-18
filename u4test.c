@@ -26,6 +26,7 @@ static void show_error_message( void)
    printf( "the path d:\\u4.  Data will be written to the file 'ucac4.txt'.\n");
    printf( "\nOptionally, one may add command line options -h to include a header\n");
    printf( "line,  and/or -f4 to get the same output as from the FORTRAN code.\n");
+   printf( "Also,  one can optionally add an output file name (default is ucac4.txt).\n");
 }
 
 static const char *fortran_header = "       ran      spdn  mag1  mag2 smot\
@@ -51,7 +52,6 @@ int main( int argc, const char **argv)
             {
             case 'h': case 'H':
                show_header = 1;
-               if( format & UCAC4_FORTRAN_STYLE)
                break;
             case 'f': case 'F':
                sscanf( argv[i] + 2, "%x", &format);
@@ -100,14 +100,15 @@ int main( int argc, const char **argv)
       show_error_message( );
    else
       {
-	   FILE* ofile = fopen(argc == 6 ? "ucac4.txt" : argv[6], "wb");
+      const char *out_filename = (argc == 6 ? "ucac4.txt" : argv[6]);
+      FILE* ofile = fopen( out_filename, "wb");
 
-	   if (!ofile)
-	   {
-		   printf("Couldn't open %s\n", argc == 6 ? "ucac4.txt" : argv[6]);
-		   show_error_message();
-		   return(-1);
-	   }
+      if (!ofile)
+      {
+         fprintf( stderr, "Couldn't open %s\n", out_filename);
+         show_error_message();
+         return(-1);
+      }
       if( show_header)
          fprintf( ofile, "%s\n", (format & UCAC4_FORTRAN_STYLE) ?
                            fortran_header : usual_header);
