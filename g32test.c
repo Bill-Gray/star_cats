@@ -26,7 +26,7 @@ static void show_error_message( void)
    printf( "g32test 032000.0 -161800.00 2 1.5 d:\\g32\n\n");
    printf( "would extract a 2-degree wide,  1.5-degree high area centered\n");
    printf( "on RA=50 degrees=3h20m, dec=-16.3,  with the data drawn from\n");
-   printf( "the path d:\\g32.  Data will be written to the file 'gaia32.txt'.\n");
+   printf( "the path d:\\g32.  Data will be written to the terminal.\n");
    printf( "\nOptionally, one may add command line options -h to include a header\n");
    printf( "line,  and/or -f4 to get the same output as from the FORTRAN code.\n");
 }
@@ -97,18 +97,10 @@ int main( int argc, const char **argv)
       show_error_message( );
    else
       {
-      FILE *ofile = fopen( "gaia32.txt", "wb");
-
-      if( !ofile)
-         {
-         printf( "Couldn't open gaia32.txt\n");
-         show_error_message( );
-         return( -1);
-         }
       if( show_header)
-         fprintf( ofile, usual_header,
-                   (format & GAIA32_BASE_60) ? "   " : "");
-      rval = extract_gaia32_stars( ofile,
+         printf( usual_header, (format & GAIA32_BASE_60) ? "   " : "");
+
+      rval = extract_gaia32_stars( stdout,
                                extract_ra_dec( argv[1], true),
                                extract_ra_dec( argv[2], false),
                                atof( argv[3]), atof( argv[4]),
@@ -118,13 +110,12 @@ int main( int argc, const char **argv)
          {
          extern clock_t time_searching;
 
-         printf( "%.2lf seconds elapsed\n",
+         fprintf( stderr, "%.2lf seconds elapsed\n",
                (double)clock( ) / (double)CLOCKS_PER_SEC);
-         printf( "%.2lf seconds indexing\n",
+         fprintf( stderr, "%.2lf seconds indexing\n",
                (double)time_searching / (double)CLOCKS_PER_SEC);
-         printf( "%d stars extracted\n", rval);
+         fprintf( stderr, "%d stars extracted\n", rval);
          }
-      fclose( ofile);
       }
    return( rval);
 }
