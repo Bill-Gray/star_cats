@@ -35,6 +35,7 @@ estimate.  */
 #include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include "gaia32.h"
 
@@ -121,6 +122,7 @@ int main( const int argc, const char **argv)
       size_t n_read, n_total = 0;
 
       fp = get_zone_file( zone);
+      memset( map + XSIZE * zone * 10, 0, sizeof( int32_t) * XSIZE * 10);
       while( (n_read = fread( stars, sizeof( GAIA32_STAR), BUFF_SIZE, fp)) > 0)
          {
          for( i = 0; i < (int)n_read; i++)
