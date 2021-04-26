@@ -47,6 +47,13 @@ int extract_gaia32_stars( FILE *ofile, const double ra, const double dec,
                   const double width, const double height, const char *path,
                   const int output_format);
 
+         /* Same,  except each star is passed to a callback function */
+         /* (this is used by extract_gaia32_stars)                   */
+int extract_gaia32_stars_callback( void *context,
+     int (*callback_fn)( void *, const int, const uint32_t, GAIA32_STAR *),
+                  const double ra, const double dec,
+                  const double width, const double height, const char *path);
+
 int extract_gaia32_info( const int zone, const long offset, GAIA32_STAR *star,
                      const char *path);
 int write_gaia32_star_fortran_style( char *obuff, const GAIA32_STAR *star);

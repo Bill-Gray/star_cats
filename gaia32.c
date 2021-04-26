@@ -144,9 +144,10 @@ clock_t time_searching = 0;
 #define GAIA32_READ_FAILED             -4
 #define GAIA32_ALLOC_FAILED            -5
 
-int extract_gaia32_stars( FILE *ofile, const double ra, const double dec,
-                  const double width, const double height, const char *path,
-                  const int output_format)
+int extract_gaia32_stars_callback( void *context,
+     int (*callback_fn)( void *, const int, const uint32_t, GAIA32_STAR *),
+                  const double ra, const double dec,
+                  const double width, const double height, const char *path)
 {
    const double dec1 = dec - height / 2., dec2 = dec + height / 2.;
    const double ra1 = ra - width / 2., ra2 = ra + width / 2.;
@@ -237,22 +238,11 @@ int extract_gaia32_stars( FILE *ofile, const double ra, const double dec,
                if( star.ra > max_ra)
                   keep_going = 0;
                else if( star.ra > min_ra && star.dec > min_dec
-                                           && star.dec < max_dec)
+                                          && star.dec < max_dec)
                   {
+                  if( callback_fn)
+                     (callback_fn)( context, zone, offset, &star);
                   rval++;
-                  if( ofile)
-                     {
-                     if( output_format & GAIA32_RAW_BINARY)
-                        fwrite( &star, 1, sizeof( GAIA32_STAR), ofile);
-                     else
-                        {
-                        char buff[GAIA32_ASCII_SIZE];
-
-                        write_gaia32_star( zone, offset + 1, buff, &star,
-                                                      output_format);
-                        fwrite( buff, 1, strlen( buff), ofile);
-                        }
-                     }
                   }
                offset++;
                }
@@ -267,11 +257,50 @@ int extract_gaia32_stars( FILE *ofile, const double ra, const double dec,
    if( rval >= 0 && ra >= 0. && ra < 360.)
       {
       if( ra1 < 0.)      /* left side crosses over RA=0h */
-         rval += extract_gaia32_stars( ofile, ra+360., dec, width, height,
-                                          path, output_format);
+         rval += extract_gaia32_stars_callback( context, callback_fn,
+                                    ra+360., dec, width, height, path);
       if( ra2 > 360.)    /* right side crosses over RA=24h */
-         rval += extract_gaia32_stars( ofile, ra-360., dec, width, height,
-                                          path, output_format);
+         rval += extract_gaia32_stars_callback( context, callback_fn,
+                                    ra-360., dec, width, height, path);
       }
    return( rval);
+}
+
+typedef struct
+   {
+   FILE *ofile;
+   int output_format;
+   } file_output_t;
+
+static int output_a_gaia32_star( void *context, const int zone,
+               const uint32_t offset, GAIA32_STAR *star)
+{
+   file_output_t *f = (file_output_t *)context;
+
+   if( f->ofile)
+      {
+      if( f->output_format & GAIA32_RAW_BINARY)
+         fwrite( star, 1, sizeof( GAIA32_STAR), f->ofile);
+      else
+         {
+         char buff[GAIA32_ASCII_SIZE];
+
+         write_gaia32_star( zone, offset + 1, buff, star,
+                                       f->output_format);
+         fwrite( buff, 1, strlen( buff), f->ofile);
+         }
+      }
+   return( 0);
+}
+
+int extract_gaia32_stars( FILE *ofile, const double ra, const double dec,
+                  const double width, const double height, const char *path,
+                  const int output_format)
+{
+   file_output_t f;
+
+   f.ofile = ofile;
+   f.output_format = output_format;
+   return( extract_gaia32_stars_callback( &f, output_a_gaia32_star,
+                             ra, dec, width, height, path));
 }
