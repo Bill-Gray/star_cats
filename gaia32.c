@@ -107,15 +107,13 @@ int write_gaia32_star( const int zone, const long offset, char *obuff,
 static FILE *get_gaia32_zone_file( const int zone_number, const char *path)
 {
    FILE *ifile;
-   char filename[80];
+   char filename[10], fullname[80];
 
-   sprintf( filename, "%s" path_separator "%03d.cat", path, zone_number);
-   ifile = fopen( filename, read_only_permits);
+   sprintf( filename, "%03d.cat", zone_number);
+   sprintf( fullname, "%s" path_separator "%s", path, filename);
+   ifile = fopen( fullname, read_only_permits);
    if( !ifile)
-      {
-      sprintf( filename, "%03d.cat", zone_number);
       ifile = fopen( filename, read_only_permits);
-      }
    return( ifile);
 }
 
