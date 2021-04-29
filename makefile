@@ -47,6 +47,9 @@ u4test$(EXE): u4test.o ucac4.o
 g32test$(EXE): g32test.o gaia32.o
 	$(CC) -o g32test$(EXE) g32test.o gaia32.o
 
+gaia_ast$(EXE): gaia_ast.c gaia32.o
+	$(CC) -o gaia_ast$(EXE) gaia_ast.c gaia32.o -I ~/include -L ~/lib -llunar -lm
+
 cmc_xvt$(EXE): cmc_xvt.o cmc.o
 	$(CC) -o cmc_xvt$(EXE) cmc_xvt.o cmc.o
 
@@ -64,6 +67,7 @@ clean:
 	-rm cmc_xvt$(EXE)
 	-rm extr_cmc$(EXE)
 	-rm g32test$(EXE)
+	-rm gaia_ast$(EXE)
 	-rm urat1_t$(EXE)
 	-rm u2test$(EXE)
 	-rm u3test$(EXE)
