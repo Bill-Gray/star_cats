@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include <stdlib.h>
 #include "gaia32.h"
 
@@ -109,7 +110,10 @@ static FILE *get_gaia32_zone_file( const int zone_number, const char *path)
    FILE *ifile;
    char filename[10], fullname[80];
 
-   sprintf( filename, "%03d.cat", zone_number);
+   if( zone_number == -1)
+      strcpy( filename, "gaia.idx");
+   else
+      sprintf( filename, "%03d.cat", zone_number);
    sprintf( fullname, "%s" path_separator "%s", path, filename);
    ifile = fopen( fullname, read_only_permits);
    if( !ifile)
@@ -141,6 +145,10 @@ clock_t time_searching = 0;
 #define GAIA32_SEEK2_FAILED            -3
 #define GAIA32_READ_FAILED             -4
 #define GAIA32_ALLOC_FAILED            -5
+#define GAIA32_NO_INDEX_FILE           -6
+#define GAIA32_BAD_MAGIC_NUMBER        -7
+#define GAIA32_CANT_READ_INDEX         -8
+#define GAIA32_CANT_READ_INDEX_2       -9
 
 int extract_gaia32_stars_callback( void *context,
      int (*callback_fn)( void *, const int, const uint32_t, GAIA32_STAR *),
@@ -155,11 +163,24 @@ int extract_gaia32_stars_callback( void *context,
    int rval = 0;
    const int buffsize = 400;     /* read this many stars at a try */
    GAIA32_STAR *stars = (GAIA32_STAR *)calloc( buffsize, sizeof( GAIA32_STAR));
+   int32_t header[3], sizes[180];
+   FILE *idx_file;
 
    if( !stars)
       rval = GAIA32_ALLOC_FAILED;
    if( zone < 0)
       zone = 0;
+   idx_file = get_gaia32_zone_file( -1, path);
+   if( !idx_file)
+      rval = GAIA32_NO_INDEX_FILE;
+   else
+      {
+      if( fread( header, sizeof( int32_t), 3, idx_file) != 3
+            || fread( sizes, sizeof( int32_t), 180, idx_file) != 180)
+          rval = GAIA32_CANT_READ_INDEX;
+      else if( header[0] != (int32_t)0xfa1a3202)
+          rval = GAIA32_BAD_MAGIC_NUMBER;
+      }
    while( rval >= 0 && zone <= end_zone)
       {
       FILE *ifile = get_gaia32_zone_file( zone, path);
@@ -167,7 +188,7 @@ int extract_gaia32_stars_callback( void *context,
       if( ifile)
          {
          int keep_going = 1;
-         int i, n_read;
+         int i, n_read, idx_size = (int)( sizes[zone] / header[2]);
          const int32_t max_ra  = (int32_t)( ra2  * 3600. * 1000.);
          const int32_t min_ra  = (int32_t)( ra1  * 3600. * 1000.);
          const int32_t min_dec = (int32_t)( dec1 * 3600. * 1000.);
@@ -175,21 +196,34 @@ int extract_gaia32_stars_callback( void *context,
          uint32_t offset, end_offset;
          const uint32_t acceptable_limit = 40;
          clock_t t0 = clock( );
-         size_t filesize;
-         int32_t ra_lo = 0;
-         int32_t ra_hi = 360 * 3600 * 1000;
+         int32_t ra_lo = 0, ra_hi = 0;
+         long index_offset = 183L;
+         int32_t *idx = (int32_t *)stars;
+         const int32_t maximum_possible_ra = 360 * 3600 * 1000;
 
-         offset = 0;
-         if( fseek( ifile, 0L, SEEK_END))
-            rval = GAIA32_SEEK_FAILED;
-         filesize = ftell( ifile);
-         if( filesize % sizeof( GAIA32_STAR))
-            {
-            fclose( ifile);
-            free( stars);
-            return( GAIA32_BAD_FILE_SIZE);
-            }
-         end_offset = filesize / sizeof( GAIA32_STAR);
+         for( i = 0; i < zone; i++)
+             index_offset += (long)( sizes[i] / header[2]);
+         fseek( idx_file, index_offset * 4L, SEEK_SET);
+         *idx = 0;
+         if( fread( idx + 1, sizeof( int32_t), idx_size, idx_file) != (size_t)idx_size)
+            rval = GAIA32_CANT_READ_INDEX_2;
+         idx[idx_size + 1] = maximum_possible_ra;
+         assert( min_ra < maximum_possible_ra);
+         i = 1;
+         while( idx[i] < min_ra)
+            i++;
+         ra_lo = idx[i - 1];
+         ra_hi = idx[i];
+         offset = (i - 1) * header[2];
+         if( i == idx_size + 1)     /* we're in the last, partial block */
+            end_offset = sizes[zone];
+         else
+            end_offset = offset + header[2];
+#ifdef DEBUGGING_CODE
+         printf( "Zone %d : searching offset %ld to %ld (RAs %f to %f)\n",
+                  zone, (long)offset, (long)end_offset,
+                  (double)ra_lo / 3600000., (double)ra_hi / 3600000.);
+#endif
                      /* Secant-search within the known limits: */
          while( rval >= 0 && end_offset - offset > acceptable_limit)
             {
@@ -248,7 +282,10 @@ int extract_gaia32_stars_callback( void *context,
          }
       zone++;
       }
-   free( stars);
+   if( stars)
+      free( stars);
+   if( idx_file)
+      fclose( idx_file);
 
             /* We need some special handling for cases where the area
                to be extracted crosses RA=0 or RA=24: */
