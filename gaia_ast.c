@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include <math.h>
 #include "mpc_func.h"
 #include "gaia32.h"
 
@@ -48,6 +49,7 @@ static int output_a_gaia32_star( void *context, const int zone,
    c->offset = offset;
    c->delta_ra  = (double)star->ra  / 1000. - c->ra  * radians_to_arcsec;
    c->delta_dec = (double)star->dec / 1000. - c->dec * radians_to_arcsec;
+   c->delta_ra *= cos( c->dec);
    printf( "%s\nDelta RA = %.3f\" Delta Dec = %.3f\"\n",
                               c->input_line, c->delta_ra, c->delta_dec);
    printf( "Gaia %d %ld;  mag %2d.%03d\n", zone, (long)offset + 1,
@@ -126,7 +128,8 @@ int main( const int argc, const char **argv)
          c.dec = dec;
          n_found = extract_gaia32_stars_callback( &c, output_a_gaia32_star,
                   ra * 180. / PI, dec * 180. / PI,
-                  search_radius * 2., search_radius * 2., path_to_data);
+                  search_radius * 2. / cos( dec),
+                  search_radius * 2., path_to_data);
          memset( buff, 0, 80);
          }
       }
