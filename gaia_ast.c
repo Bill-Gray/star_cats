@@ -114,7 +114,7 @@ static int compare( const void *aptr, const void *bptr)
 
 static const char *path_to_data = "";
 static double search_radius = 1.;
-static bool show_progress = false;
+static int verbose = 0;
 
 static void dump_ilines( iline_t *ilines, const int n_ilines, FILE *output_file)
 {
@@ -137,10 +137,10 @@ static void dump_ilines( iline_t *ilines, const int n_ilines, FILE *output_file)
          fprintf( stderr, "Error %d reading Gaia-DR2\n", n_found);
          exit( -1);
          }
-      if( show_progress && !(i % (n_ilines / 80)))
+      if( verbose && !(i % (n_ilines / 80 + 1)))
          printf( ".");
       }
-   if( show_progress)
+   if( verbose)
       printf( "\n");
             /* ...sort back out by idx (order in original file) and output : */
    sort_order = SORT_BY_IDX;
@@ -218,7 +218,9 @@ int main( const int argc, const char **argv)
                search_radius = atof( arg);
                break;
             case 'v':
-               show_progress = true;
+               verbose = 1;
+               if( argv[i][2])
+                  verbose = atoi( argv[i] + 2);
                break;
             default:
                fprintf( stderr, "'%s' not recognized\n", argv[i]);
