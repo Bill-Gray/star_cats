@@ -98,7 +98,7 @@ static void error_exit( void)
 
 int main( const int argc, const char **argv)
 {
-   const int end_zone = 179;
+   int end_zone = 179;
    const int spacing = (argc > 1 ? atoi( argv[1]) : 0);
    int i, verbose = 0, zone = 0;
    FILE *ifile, *ofile = fopen( "gaia.idx", "wb");
@@ -116,6 +116,14 @@ int main( const int argc, const char **argv)
             {
             case 'v':
                verbose = 1 + atoi( argv[i] + 2);
+               break;
+            case 'r':
+               if( 2 != sscanf( argv[i] + 2, "%d,%d", &zone, &end_zone))
+                  {
+                  fprintf( stderr, "Couldn't parse zone string '%s'\n",
+                                       argv[i]);
+                  error_exit( );
+                  }
                break;
             }
    header[0] = 0xfa1a3202;    /* magic number;  2 at end means DR2 */
