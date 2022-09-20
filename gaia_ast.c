@@ -171,7 +171,8 @@ static void error_exit( void)
    exit( -1);
 }
 
-#define ILINE_MAX   10485760
+#define ILINE_MAX  (1 << 23)
+#define is_power_of_two( X)   (!((X) & ((X) - 1)))
 
 int main( const int argc, const char **argv)
 {
@@ -179,10 +180,9 @@ int main( const int argc, const char **argv)
    char buff[400];
    void *ades_context = init_ades2mpc( );
    int i, show_data = 0, n_found = 0, line_no = 0;
-   iline_t *ilines = (iline_t *)malloc( ILINE_MAX * sizeof( iline_t));
+   iline_t *ilines = NULL;
    int n_ilines = 0;
 
-   assert( ilines);
    if( argc < 2)
       error_exit( );
    ifile = fopen( argv[1], "rb");
@@ -248,6 +248,11 @@ int main( const int argc, const char **argv)
          if( strlen( buff) != 80)
             printf( "Line %d : '%s'\n", line_no, buff);
          assert( strlen( buff) == 80);
+         if( is_power_of_two( n_ilines + 1))
+            {
+            ilines = (iline_t *)realloc( ilines, 2 * (n_ilines + 1) * sizeof( iline_t));
+            assert( ilines);
+            }
          strcpy( ilines[n_ilines].buff, buff);
          ilines[n_ilines].idx = n_ilines;
          ilines[n_ilines].ra  = ra;
@@ -257,8 +262,11 @@ int main( const int argc, const char **argv)
          }
       memset( buff, 0, 80);
       }
-   dump_ilines( ilines, n_ilines, output_file);
-   free( ilines);
+   if( ilines)
+      {
+      dump_ilines( ilines, n_ilines, output_file);
+      free( ilines);
+      }
    free_ades2mpc_context( ades_context);
    fclose( ifile);
    return( 0);
