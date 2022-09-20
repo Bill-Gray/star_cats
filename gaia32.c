@@ -198,7 +198,7 @@ int extract_gaia32_stars_callback( void *context,
          clock_t t0 = clock( );
          int32_t ra_lo = 0, ra_hi = 0;
          long index_offset = 183L;
-         int32_t *idx = (int32_t *)stars;
+         int32_t *idx = (int32_t *)malloc( (idx_size + 2) * sizeof( int32_t));
          const int32_t maximum_possible_ra = 360 * 3600 * 1000;
 
          for( i = 0; i < zone; i++)
@@ -214,6 +214,7 @@ int extract_gaia32_stars_callback( void *context,
             i++;
          ra_lo = idx[i - 1];
          ra_hi = idx[i];
+         free( idx);
          offset = (i - 1) * header[2];
          if( i == idx_size + 1)     /* we're in the last, partial block */
             end_offset = sizes[zone];
