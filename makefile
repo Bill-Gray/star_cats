@@ -12,7 +12,7 @@
 
 CC=gcc
 EXE=
-CFLAGS=-Wextra -Wall -O3 -pedantic
+CFLAGS=-Wextra -Wall -O3 -pedantic -Werror
 RM=rm -f
 
 ifdef CLANG
@@ -24,12 +24,17 @@ ifdef MSWIN
 	RM=del
 endif
 
+ifdef DEBUG
+	CFLAGS += -g
+endif
+
 ifdef XCOMPILE
 	CC=x86_64-w64-mingw32-gcc
 	EXE=.exe
 endif
 
-all:  cmcrange$(EXE) cmc_xvt$(EXE) extr_cmc$(EXE) g32test$(EXE) \
+all:  cmcrange$(EXE) cmc_xvt$(EXE) extr_cmc$(EXE) gaia_ast$(EXE) \
+     gaia_idx$(EXE) g32test$(EXE) \
      urat1_t$(EXE) u2test$(EXE) u3test$(EXE) u4test$(EXE)
 
 urat1_t$(EXE): urat1_t.o urat1.o
@@ -50,6 +55,9 @@ g32test$(EXE): g32test.o gaia32.o
 gaia_ast$(EXE): gaia_ast.c gaia32.o
 	$(CC) -o gaia_ast$(EXE) gaia_ast.c gaia32.o -I ~/include -L ~/lib -llunar -lm
 
+gaia_idx$(EXE): gaia_idx.o
+	$(CC) -o gaia_idx$(EXE) gaia_idx.o
+
 cmc_xvt$(EXE): cmc_xvt.o cmc.o
 	$(CC) -o cmc_xvt$(EXE) cmc_xvt.o cmc.o
 
@@ -63,13 +71,14 @@ cmcrange$(EXE): cmcrange.o cmc.o
 	$(CC) $(CFLAGS) -c $<
 
 clean:
-	-rm cmcrange$(EXE)
-	-rm cmc_xvt$(EXE)
-	-rm extr_cmc$(EXE)
-	-rm g32test$(EXE)
-	-rm gaia_ast$(EXE)
-	-rm urat1_t$(EXE)
-	-rm u2test$(EXE)
-	-rm u3test$(EXE)
-	-rm u4test$(EXE)
-	-rm *.o
+	-$(RM) cmcrange$(EXE)
+	-$(RM) cmc_xvt$(EXE)
+	-$(RM) extr_cmc$(EXE)
+	-$(RM) g32test$(EXE)
+	-$(RM) gaia_ast$(EXE)
+	-$(RM) gaia_idx$(EXE)
+	-$(RM) urat1_t$(EXE)
+	-$(RM) u2test$(EXE)
+	-$(RM) u3test$(EXE)
+	-$(RM) u4test$(EXE)
+	-$(RM) *.o
