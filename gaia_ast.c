@@ -115,13 +115,15 @@ static int compare( const void *aptr, const void *bptr)
 static const char *path_to_data = "";
 static double search_radius = 1.;
 static int verbose = 0;
+static bool sort_records = true;
 
 static void dump_ilines( iline_t *ilines, const int n_ilines, FILE *output_file)
 {
    int i;
 
    sort_order = SORT_BY_DEC;
-   qsort( ilines, n_ilines, sizeof( iline_t), compare);
+   if( sort_records)
+      qsort( ilines, n_ilines, sizeof( iline_t), compare);
             /* should sort by dec order here,  then... */
    setbuf( stdout, NULL);
    for( i = 0; i < n_ilines; i++)
@@ -144,7 +146,8 @@ static void dump_ilines( iline_t *ilines, const int n_ilines, FILE *output_file)
       printf( "\n");
             /* ...sort back out by idx (order in original file) and output : */
    sort_order = SORT_BY_IDX;
-   qsort( ilines, n_ilines, sizeof( iline_t), compare);
+   if( sort_records)
+      qsort( ilines, n_ilines, sizeof( iline_t), compare);
    for( i = 0; i < n_ilines; i++)
       if( ilines[i].zone > -1)
          {
@@ -217,6 +220,10 @@ int main( const int argc, const char **argv)
             case 'r':
                search_radius = atof( arg);
                break;
+            case 's':
+               sort_records = false;
+               printf( "NOT SORTING RECORDS (will be slower)\n");
+               break;
             case 'v':
                verbose = 1;
                if( argv[i][2])
@@ -262,6 +269,8 @@ int main( const int argc, const char **argv)
          }
       memset( buff, 0, 80);
       }
+   if( verbose)
+      printf( "%d records found\n", n_ilines);
    if( ilines)
       {
       dump_ilines( ilines, n_ilines, output_file);
