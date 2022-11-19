@@ -119,7 +119,7 @@ static bool sort_records = true;
 
 static void dump_ilines( iline_t *ilines, const int n_ilines, FILE *output_file)
 {
-   int i;
+   int i, pct_done = 0;
 
    sort_order = SORT_BY_DEC;
    if( sort_records)
@@ -139,8 +139,15 @@ static void dump_ilines( iline_t *ilines, const int n_ilines, FILE *output_file)
          fprintf( stderr, "Error %d reading Gaia-DR2\n", n_found);
          exit( -1);
          }
-      if( verbose && !(i % (n_ilines / 80 + 1)))
-         printf( ".");
+      while( verbose && i * 100 > pct_done * (n_ilines - 1))
+         {
+         char progress_bar[50];
+
+         pct_done++;
+         memset( progress_bar, ' ', 50);
+         memset( progress_bar, '.', pct_done / 2);
+         printf( "\r%2d%% done [%.50s]", pct_done, progress_bar);
+         }
       }
    if( verbose)
       printf( "\n");
