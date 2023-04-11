@@ -5,11 +5,8 @@
 #include "gaia32.h"
 
 /* Basic access functions for Dave Tholen's Gaia32 data.  Please
-contact pluto (at) projectpluto.com with comments/bug fixes.  */
-
-/* History:
-     2016 Dec 10:  (BJG) First version.
-*/
+contact pluto (at) projectpluto.com with comments/bug fixes.
+See git log for history.         */
 
 #ifdef __BYTE_ORDER
 #if __BYTE_ORDER == __BIG_ENDIAN
@@ -122,19 +119,25 @@ static FILE *get_gaia32_zone_file( const int zone_number, const char *path)
 }
 
 /* A note on indexing:  within each zone,  we want to locate the stars
-within a particular range in RA.  If an index is unavailable (this is
-currently always the case with Gaia32), we have things narrowed down
-to somewhere between the first and last records.  If an index is
-available,  our search can take place within a narrower range.  But
-in either case,  the range is refined by doing a secant search which
-narrows down the starting point to within 'acceptable_limit' records,
-currently set to 40;  i.e.,  it's possible that we will read in
-forty records that are before the low end of the desired RA range.
-The secant search is slightly modified to ensure that each iteration
-knocks off at least 1/8 of the current range.
+within a particular range in RA.  One can binary-search the zone file
+to locate the desired starting RA,  avoiding the need for any explicit
+index.  But this can be (slightly) slow.
+
+'gaia.idx' contains an index to provide approximate ranges in RA for
+each declination zone.  Searching is still done,  but within a
+(usually quite small) part of the zone file.  See 'gaia_idx.c' for
+details on the indexing.
+
+The index provides a range within which to search;  this is refined by
+doing a secant search which narrows down the starting point to within
+'acceptable_limit' records, currently set to 40;  i.e.,  it's possible
+that we will read in forty records that are before the low end of the
+desired RA range. The secant search is slightly modified to ensure
+that each iteration knocks off at least 1/8 of the current range.
 
    Records are then read in 'buffsize' stars at a time and,  if
-they're in the desired RA/dec rectangle,  written out to 'ofile'. */
+they're in the desired RA/dec rectangle,  handed to the specified
+callback function.  */
 
 #include <time.h>
 
