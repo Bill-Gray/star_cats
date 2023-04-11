@@ -59,7 +59,6 @@ int main( const int argc, const char **argv)
       {
       FILE *ofile = fopen( "ucac3.txt", "w");
       int i;
-      int pass = 0;         /* for the nonce,  there isn't a BSS-3 yet: */
       unsigned format = UCAC3_WRITE_SPACES;
 
       for( i = 5; i < argc; i++)
@@ -90,15 +89,12 @@ catflags g1c1 leda x2m  rn   \n");
                   printf( "%s is an unrecognized option\n", argv[i]);
                   break;
                }
-//    for( pass = 0; pass < 2; pass++)
-         {
-         rval = extract_ucac3_stars( ofile, atof( argv[1]), atof( argv[2]),
-                                            atof( argv[3]), atof( argv[4]),
-                                         (argc > 5 ? argv[5] : ""), pass,
+      rval = extract_ucac3_stars( ofile, atof( argv[1]), atof( argv[2]),
+                                         atof( argv[3]), atof( argv[4]),
+                                         (argc > 5 ? argv[5] : ""), 0,
                                          format);
 
-         printf( "%d stars extracted\n", rval);
-         }
+      printf( "%d stars extracted\n", rval);
       fclose( ofile);
       }
    return( rval);
