@@ -107,6 +107,7 @@ static FILE *get_gaia32_zone_file( const int zone_number, const char *path)
    FILE *ifile;
    char filename[10], fullname[80];
 
+   assert( zone_number >= -1 && zone_number < 180);
    if( zone_number == -1)
       strcpy( filename, "gaia.idx");
    else
