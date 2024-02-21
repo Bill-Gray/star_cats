@@ -33,7 +33,7 @@ ifdef XCOMPILE
 	EXE=.exe
 endif
 
-all:  cmcrange$(EXE) cmc_xvt$(EXE) extr_cmc$(EXE) gaia_ast$(EXE) \
+all:  cmcrange$(EXE) cmc_xvt$(EXE) extr_cmc$(EXE) \
      gaia_idx$(EXE) g32test$(EXE) \
      urat1_t$(EXE) u2test$(EXE) u3test$(EXE) u4test$(EXE)
 
