@@ -23,10 +23,13 @@ GAIA32_STAR
    uint16_t pm_dec_sigma;
    int16_t epoch;           /* in milliyears since 2000 */
    uint16_t mag, mag_sigma; /* in millimagnitudes */
+#ifndef GAIA_DR2
+   int16_t b_minus_r;       /* in millimagnitudes : Gaia-DR3 version only */
+#endif
    };
 #pragma pack( )
 
-/* Note: sizeof( GAIA32_STAR) = 28 bytes */
+/* Note: sizeof( GAIA32_STAR) = 28 bytes,  or 30 bytes for Gaia-DR3 */
 
 #ifdef __cplusplus
 extern "C" {

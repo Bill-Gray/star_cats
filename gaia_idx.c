@@ -52,13 +52,14 @@ Another departure from "standard practice" : there is a single
 index for all zones (instead of a .acc file for each zone) and
 the indices are binary,  for speed and compactness.
 
-Physically,  the index is a series of four-byte integers.
-The first is the magic number 0xfa1a3202 (because 0xgaia3202
-would have two non-hexadecimal digits).  The second is unused
-at present,  and the third gives the 'spacing' parameter.  I
-expect to play around a bit to see what spacing works best.
-(The file size of the index will be about 6.6GBytes / spacing,
-plus overhead.)
+Physically,  the index is a series of four-byte integers. The
+first is the magic number 0xfa1a3202 (because 0xgaia3202 would
+have two non-hexadecimal digits).  The second is unused at
+present,  and the third gives the 'spacing' parameter.  I expect
+to play around a bit to see what spacing works best. (The file
+size of the index will be about 7.25 GBytes / spacing, plus
+overhead,  for Gaia-DR3.  For the slightly smaller Gaia-DR2, it
+was 6.6GBytes / spacing, plus overhead.)
 
 After the three integers for the header are 180 integers for
 the number of stars per zone (i.e.,  the ninth such integer
@@ -68,12 +69,13 @@ per-zone integers shown above;  for zone 8,  four integers
 
 'gaia32.c' has logic to read in the 183-byte header,  then make
 use of it to figure out where in the index to get the offsets
-within each zone file.  A Gaia32-stored star takes 28 bytes;
-this code run with spacing = 100K will therefore give you an
-index that always gets you to within 2.8 MBytes of the actual
+within each zone file.  A Gaia32-stored star took 28 bytes for
+version 2,  30 bytes for version 3.  This code run with
+spacing = 100K will therefore give you an index that always
+gets you to within 2.8 MBytes (or 3.0 MBytes) of the actual
 starting RA.
 
-One could binary-search within that 2.8 MBytes.  'gaia32.h'
+One could binary-search within that 2.8 or 3 MBytes.  'gaia32.h'
 does a secant search,  modified to always reduce the search
 area by 1/8 on each step (to avoid perverse behavior where
 you'd make lots of tiny steps).

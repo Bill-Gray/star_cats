@@ -9,27 +9,25 @@
 #include "gaia32.h"
 
 /* Code to read a file of ADES and/or 80-column astrometry,  or a mix
-thereof,  and look for matching stars in a compressed Gaia-DR2 catalogue
-provided by Dave Tholen.  (Dave has plans for a Gaia-DR3 version,  but
-the format will almost certainly change.  But I don't think I'll have
-much work to update this.)
+thereof,  and look for matching stars in a compressed Gaia-DR3 catalogue
+provided by Dave Tholen.
 
    The basic procedure is as follows :
 
    The file is opened,  and we read from it and look for astrometry.
 When we find it,  we store it in the 'ilines' array in main( ).
 
-   That array can only handle ILINE_MAX entries.  When we fill the
-array,  we sort it by the order in which it would appear in Dave's
-compressed catalogue,  which has one-degree bands in declination
-with stars within each band sorted by RA.  Thus,  we'll be looking
-through that catalogue "in order".
+   That array can only handle ILINE_MAX entries (currently set to
+2^23 = 8388608).  When we fill the array,  we sort it by the order
+in which it would appear in Dave's compressed catalogue,  which has
+one-degree bands in declination with stars within each band sorted
+by RA.  Thus,  we'll be looking through that catalogue "in order".
 
    This helps quite a bit with speed.  The catalogue is a bit over
-47 GBytes.
+54 GBytes.
 
    Once sorted,  we look up each line of astrometry using the
-functions in gaia32.c to see if any Gaia-DR2 star lands near that
+functions in gaia32.c to see if any Gaia-DR3 star lands near that
 star.
 
    After all stars are checked,  we sort the data back out into its
@@ -37,9 +35,9 @@ original order and dump it to the output file.
 
    When the input file has been completely read,  we apply the same
 sort/check/resort/output process to the remaining records.  Note
-that most input files have far fewer than ILINE_MAX entries;  we
-mostly encounter that when running the entire ITF and similarly
-large compilations.        */
+that most input files have far fewer than ILINE_MAX (about eight
+million) entries;  I've only encountered that limit when running the
+entire ITF and similarly large compilations.        */
 
 static const char *get_arg( const char **argv)
 {
@@ -188,21 +186,14 @@ int main( const int argc, const char **argv)
 {
    FILE *ifile, *output_file = stdout;
    char buff[400];
+   const char *filename;
    void *ades_context = init_ades2mpc( );
    int i, show_data = 0, n_found = 0, line_no = 0;
    iline_t *ilines = NULL;
    int n_ilines = 0;
 
-   if( argc < 2)
-      error_exit( );
-   ifile = fopen( argv[1], "rb");
-   if( !ifile)
-      {
-      fprintf( stderr, "Couldn't open '%s' : %s\n\n", argv[1], strerror( errno));
-      error_exit( );
-      }
    assert( ades_context);
-   for( i = 2; i < argc; i++)
+   for( i = 1; i < argc; i++)
       if( argv[i][0] == '-')
          {
          const char *arg = get_arg( argv + i);
@@ -241,6 +232,18 @@ int main( const int argc, const char **argv)
                break;
             }
          }
+      else
+         filename = argv[i];
+
+   if( !filename)
+      error_exit( );
+
+   ifile = fopen( filename, "rb");
+   if( !ifile)
+      {
+      fprintf( stderr, "Couldn't open '%s' : %s\n\n", filename, strerror( errno));
+      error_exit( );
+      }
 
    search_radius /= 3600.;    /* cvt arcsec to degrees */
 
